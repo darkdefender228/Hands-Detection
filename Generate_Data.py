@@ -19,7 +19,7 @@ def hands_generator(imlist, save_path, hand):
         vertical_img = cv2.flip(img, 1)
         cv2.imwrite(save_path + hand + str(index) + ".jpg",vertical_img)
         
-def trash_generator(imlist, save_path, bad='b', first_var=0.8, rand_var=0.7):
+def trash_generator(imlist, save_path, bad='b', dim_first=None, dim_rand=None):
     """
     generating new images by choosing image and one random image reducing them and adding 
     """
@@ -30,7 +30,7 @@ def trash_generator(imlist, save_path, bad='b', first_var=0.8, rand_var=0.7):
         img = cv2.imread(imageSource)[:,:,0] #convert img from (N,M,C) to (N,M)
         img_rand = cv2.imread(imlist[rand])[:,:,0]
         
-        n_features_first, n_features_rand = int(img.shape[0] * first_var), int(img_rand.shape[0] * rand_var)
+        n_features_first, n_features_rand = int(img.shape[0]*0.8), int(img_rand.shape[0]*0.7)
         reduced_first = it.reduce_dim(n_features_first, img)
         reduced_rand = it.reduce_dim(n_features_rand, img_rand)
         save.append(reduced_first + reduced_rand)
