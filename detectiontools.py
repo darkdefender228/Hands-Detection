@@ -7,6 +7,7 @@ Created on Thu Aug  9 15:12:28 2018
 """
 import numpy as np
 from matplotlib import pyplot as plt
+from sklearn.cluster import KMeans
 
 def show(img, title='my picture'):
     plt.imshow(img, cmap='gray')
@@ -86,3 +87,26 @@ def count_cluster(first, dots, radius):
         return count_cluster(lst[0], np.asarray(lst[1:]), radius) + 1
     else:
         return 1
+
+def find_cluster(n_clusters, coordinates, mode='default', init='k-means++'):
+    """
+    finds clusters and return a dictionary with keys 'clusters_centres', 'coordinates'
+    where 'clusters_centres' are coordinates of clusters centres, 
+    'coordinates' are coordinates of local peek maxima
+    
+    n_clusters - float
+    coordinates - numpy.ndarray
+    mode - str - is optional, if the mode is +- finds centers for number of clusters  
+    [n_clusters - 1, n_clusters, n_clusters + 1] 
+    in that case dots['clusters_centres'].shape = (3,)
+    init - str - init for Kmeans
+    """
+    dots = {}
+    if mode == 'default':
+        kmeans_centers = KMeans(n_clusters=n_clusters, random_state=0, init='k-means++').fit(coordinates).cluster_centers_
+    if mode == '+-':
+        kmeans_centers = [KMeans(n_clusters=i, random_state=0, init='k-means++').fit(coordinates).cluster_centers_ for i in range(n_clusters - 1, n_clusters + 2)]
+        
+    dots['clusters_centers'] = np.asarray(kmeans_centers)
+    dots['coordinates'] = coordinates
+    return dots
