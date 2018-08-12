@@ -121,20 +121,56 @@ def crop(box, img):
 
     return img[y[0][0]:y[0][1], x[0][0]:x[0][1]]
 
-def generating_boxes(dots, img, box_shape, shape):
-    """
-    dots - dictionary. keys - ['coordiantes', 'clusters'] - numpy.array
-    img - numpy.array
-    box_shape - int - weight/height of box
-    shape - tuple (y, x) shape of original image
-    
-    generating the all boxes around dots and around the clusters centers
-    
-    return - numpy.array - array of cropped images
-    """
+def generating_boxes(dots, img, box_shape, shape, optimization=False):
     croped_image = []
-    boxes = make_square_box(dots, box_shape, shape)
-    for dot_boxes in boxes:
-        for box in dot_boxes:
+    score = [] #for evalueting
+
+    boxes = make_square_box(dots, box_shape, shape)  #making our boxes for each dot, 
+                                                     #each dot has array which includes the box coordinates  which was generated aroud this dot
+    for index, dot_boxes in enumerate(boxes):        # dot_boxes - boxes generated around one dot
+        dot_boxes_scores = []
+        for box in dot_boxes:                        #evalueting all boxes generated from one dot and save this scores in dot_boxes_scores
+            if optimization and index < dots['coordinates'].shape[0]: #(evaluate only box generated from max peek)
+                dot_boxes_scores.append(evalueting_cropping(box, dots, img, dots['clusters'][0].labels_[index]))
             croped_image.append(crop(box, img))
+        if len(dot_boxes_scores) > 0:
+            score.append(dot_boxes_scores)          #saving in score, in this case, the one element from the score array it is an array 
+                                                    #with scores from each box generated from one dot
+    print("score ", score)
     return np.asarray(croped_image)
+
+def evalueting_cropping(box, dots, img, cluster):
+    coords, clustered = dots['coordinates'], dots['clusters']
+    number_self_dots = 0.000000001
+    number_alien_dots = 0.000000001
+    finded_clusters = []
+    count_clusters = 1
+    
+    summa = np.sum(crop(box, img))
+    for index, coord in enumerate(coords):
+        if in_box(coord, box):
+            cluster_ = clustered[0].labels_[index]
+            if cluster != cluster_:
+                number_alien_dots = number_alien_dots + 1
+                if cluster_ not in finded_clusters:
+                    finded_clusters.append(cluster_)
+                    count_clusters = count_clusters + 1
+            else:
+                number_self_dots = number_self_dots + 1
+    value = summa * number_self_dots / (number_alien_dots * count_clusters)
+    return round(value, 3)
+
+def in_box(coord, box):
+    #check is the dot in box or not
+    if box[0] < box[2]:
+        y = box[0], box[2]
+    else:
+        y = box[2], box[0]
+    if box[1] < box[3]:
+        x = box[1], box[3]
+    else:
+        x = box[3], box[1]
+    if  y[0] <= coord[0] and coord[0] <= y[1]:
+        if x[0] <= coord[1]  and coord[1] <= x[1]:
+            return True
+    return False
