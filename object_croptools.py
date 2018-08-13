@@ -81,12 +81,9 @@ def crop_number(numb, limits):
     """
     if numb < limits[0]:
         return limits[0]
-    else:
-        return numb
     if numb > limits[1]:
         return limits[1]
-    else:
-        return numb
+    return numb
 
 def box(shift, dot, where):
     """
