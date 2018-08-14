@@ -120,7 +120,7 @@ def crop(box, img):
 
 def generating_boxes(dots, img, box_shape, shape, optimization=False):
     croped_image = []
-    score = [] #for evalueting
+    #score = [] #for evalueting
 
     boxes = make_square_box(dots, box_shape, shape)  #making our boxes for each dot, 
                                                      #each dot has array which includes the box coordinates  which was generated aroud this dot
@@ -129,11 +129,17 @@ def generating_boxes(dots, img, box_shape, shape, optimization=False):
         for box in dot_boxes:                        #evalueting all boxes generated from one dot and save this scores in dot_boxes_scores
             if optimization and index < dots['coordinates'].shape[0]: #(evaluate only box generated from max peek)
                 dot_boxes_scores.append(evalueting_cropping(box, dots, img, dots['clusters'][0].labels_[index]))
-            croped_image.append(crop(box, img))
-        if len(dot_boxes_scores) > 0:
-            score.append(dot_boxes_scores)          #saving in score, in this case, the one element from the score array it is an array 
-                                                    #with scores from each box generated from one dot
-    print("score ", score)
+        if optimization and len(dot_boxes_scores) > 0:
+            first, second = index_two_min(dot_boxes_scores) # taking index of the boxes with the lowest scores
+            values = dot_boxes[first], dot_boxes[second]    # taking these boxes
+            
+            for value in values:
+                dot_boxes.remove(value)                     # removing bad boxes
+            
+        good = [crop(box, img) for box in dot_boxes]    # cropping good boxes
+        croped_image.append(good)
+            #score.append(dot_boxes_scores)          #saving in score, in this case, the one element from the score array it is an array 
+                                                     #with scores from each box generated from one dot
     return np.asarray(croped_image)
 
 def evalueting_cropping(box, dots, img, cluster):
@@ -171,3 +177,16 @@ def in_box(coord, box):
         if x[0] <= coord[1]  and coord[1] <= x[1]:
             return True
     return False
+
+def index_two_min(arr):
+    if arr[0] < arr[1]:
+        index_of_min, index_of_second = 0, 1
+    else:
+        index_of_min, index_of_second = 1, 0
+    for index, element in enumerate(arr[2:]):
+        if element < arr[index_of_min]:
+            index_of_second = index_of_min
+            index_of_min = index + 2
+        elif element < arr[index_of_second]:
+            index_of_second = index + 2
+    return index_of_min, index_of_second
