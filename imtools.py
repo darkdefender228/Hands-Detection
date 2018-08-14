@@ -8,10 +8,11 @@ def split(path, path_test, path_train,for_train=0.8):
     imgs = get_imlist(path)
     count = int(len(imgs) * for_train)
     for index, img in enumerate(imgs):
+        img_name = os.path.split(img)[-1]
         if index < count:
-            os.rename(img, path_train)
+          os.rename(img, os.path.join(path_train, img_name))
         else:
-            os.rename(img, path_test)
+          os.rename(img, os.path.join(path_test, img_name))
             
 def reduce_dim(n_comp, img):
     """
