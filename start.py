@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Aug 19 00:54:51 2018
-
 @author: romanilechko
 """
 import imtools as it
