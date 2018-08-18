@@ -116,11 +116,10 @@ def crop(box, img):
     y.append((box[0], box[2])) if box[0] < box[2] else y.append((box[2], box[0])) #y_slicing
     x.append((box[1], box[3])) if box[1] < box[3] else x.append((box[3],box[1])) #x_slicing
 
-    return img[y[0][0]:y[0][1], x[0][0]:x[0][1]]
+    return img[y[0][0]:y[0][1] - 2, x[0][0]:x[0][1] - 2]
 
 def generating_boxes(dots, img, box_shape, shape, optimization=False):
     croped_image = []
-    #score = [] #for evalueting
 
     boxes = make_square_box(dots, box_shape, shape)  #making our boxes for each dot, 
                                                      #each dot has array which includes the box coordinates  which was generated aroud this dot
@@ -136,10 +135,9 @@ def generating_boxes(dots, img, box_shape, shape, optimization=False):
             for value in values:
                 dot_boxes.remove(value)                     # removing bad boxes
             
-        good = [crop(box, img) for box in dot_boxes]    # cropping good boxes
+        good = [box for box in dot_boxes if good_size(50, box)]    # cropping good boxes
         croped_image.append(good)
-            #score.append(dot_boxes_scores)          #saving in score, in this case, the one element from the score array it is an array 
-                                                     #with scores from each box generated from one dot
+
     return np.asarray(croped_image)
 
 def evalueting_cropping(box, dots, img, cluster):
@@ -190,3 +188,13 @@ def index_two_min(arr):
         elif element < arr[index_of_second]:
             index_of_second = index + 2
     return index_of_min, index_of_second
+
+def good_size(box_shape, box):
+    """
+    box_shape - int weight or height of our square box
+    box - box coordinates for checking
+    return True if box match
+    """
+    if np.abs(box[0] - box[2]) >= box_shape and np.abs(box[1] - box[3]) >= box_shape:
+        return True
+    return False
